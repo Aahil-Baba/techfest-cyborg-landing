@@ -21,4 +21,4 @@ Designed around the "Simulated Paradigm" theme, this landing page synthesizes pr
 ## Live Deployment
 
 The system mainframe is currently active and hosted via GitHub Pages:
-**[Insert Your GitHub Pages Link Here]**
+https://aahil-baba.github.io/techfest-cyborg-landing/
