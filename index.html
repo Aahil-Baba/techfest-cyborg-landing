@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Techfest 29 // A Simulated Paradigm</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Orbitron:wght@500;800;900&family=Space+Mono&display=swap" rel="stylesheet">
+    
+    <style>
+        /* === 1. THEME VARIABLES === */
+        :root {
+            --bg-deep: #f0f4f8;
+            --text-pure: #0f172a;
+            --text-dim: #475569;
+            --accent-primary: #2563eb;
+            --accent-glow: rgba(37, 99, 235, 0.2);
+            --glass-base: rgba(255, 255, 255, 0.6);
+            --glass-border: rgba(15, 23, 42, 0.1);
+            --btn-text-verified: #ffffff;
+            
+            --font-display: 'Inter', sans-serif;
+            --font-body: 'Inter', sans-serif;
+            --font-mono: 'Space Mono', monospace;
+            --grid-line: rgba(0, 0, 0, 0.03);
+        }
+
+        [data-theme="augmented"] {
+            --bg-deep: #020204;
+            --text-pure: #ffffff;
+            --text-dim: #94a3b8;
+            --accent-primary: #00f3ff;
+            --accent-glow: rgba(0, 243, 255, 0.25);
+            --glass-base: rgba(10, 11, 16, 0.6);
+            --glass-border: rgba(0, 243, 255, 0.2);
+            --btn-text-verified: #000000;
+            
+            --font-display: 'Orbitron', sans-serif;
+            --font-body: 'Space Mono', monospace;
+            --grid-line: rgba(255, 255, 255, 0.02);
+        }
+
+        /* === 2. GLOBAL STYLES === */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-pure);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            line-height: 1.6;
+            transition: background-color 0.4s ease, color 0.4s ease;
+            background-image: 
+                radial-gradient(circle at 50% 30%, var(--accent-glow), transparent 60%),
+                linear-gradient(var(--grid-line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+            background-size: 100% 100%, 50px 50px, 50px 50px;
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0) skew(0deg); filter: hue-rotate(0deg); }
+            20% { transform: translate(-5px, 5px) skew(-10deg); filter: hue-rotate(90deg); }
+            40% { transform: translate(5px, -5px) skew(10deg); filter: hue-rotate(-90deg); }
+            60% { transform: translate(-2px, 2px) skew(-5deg); filter: hue-rotate(45deg); }
+            80% { transform: translate(2px, -2px) skew(5deg); filter: hue-rotate(-45deg); }
+            100% { transform: translate(0) skew(0deg); filter: hue-rotate(0deg); }
+        }
+        .glitch-active { animation: glitch 0.4s ease-out; }
+
+        /* === 3. PRELOADER === */
+        #boot-sequence {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+            background: #000; color: #00ff00; font-family: 'Space Mono', monospace;
+            z-index: 9999; padding: 2rem; display: flex; flex-direction: column;
+        }
+        .boot-line { opacity: 0; margin-bottom: 0.5rem; }
+
+        /* === 4. HEADER & HERO === */
+        #main-content { opacity: 0; display: none; transition: opacity 1s ease-in; }
+
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1.5rem 5%; border-bottom: 1px solid var(--glass-border);
+            background: var(--glass-base); backdrop-filter: blur(10px);
+            position: sticky; top: 0; z-index: 100;
+        }
+
+        .logo { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; }
+
+        .theme-switch-wrapper {
+            display: flex; align-items: center; gap: 10px;
+            font-family: var(--font-display); font-size: 0.8rem; text-transform: uppercase;
+        }
+
+        .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #cbd5e1; transition: .4s; border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 16px; width: 16px;
+            left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #00f3ff; }
+        input:checked + .slider:before { transform: translateX(26px); }
+
+        .hero {
+            padding: 6rem 5%; text-align: center; min-height: 50vh;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        
+        .hero h1 {
+            font-family: var(--font-display); font-size: clamp(2rem, 5vw, 4rem);
+            margin-bottom: 1rem; text-transform: uppercase; font-weight: 900;
+        }
+
+        .hero p { color: var(--text-dim); max-width: 600px; margin-bottom: 3rem; font-size: 1.1rem; }
+
+        .biometric-btn {
+            position: relative; padding: 1.2rem 3rem;
+            font-family: var(--font-display); font-weight: 700; font-size: 1rem; letter-spacing: 1px;
+            color: var(--accent-primary); background: var(--glass-base);
+            backdrop-filter: blur(5px); border: 2px solid var(--accent-primary);
+            box-shadow: 0 0 15px var(--accent-glow); cursor: pointer; overflow: hidden;
+            user-select: none; touch-action: none; transition: all 0.3s ease;
+        }
+
+        .bio-fill {
+            position: absolute; top: 0; left: 0; height: 100%; width: 0%;
+            background: var(--accent-primary); z-index: -1; transition: width 0.1s linear;
+        }
+        
+        .scanner-line {
+            position: absolute; top: 0; left: 0; width: 3px; height: 100%;
+            background: #fff; box-shadow: 0 0 12px #fff; opacity: 0;
+        }
+
+        /* === 5. MEDIA GRID CARDS (Unified Design) === */
+        .glass-wrapper { max-width: 1200px; margin: 2rem auto 6rem auto; padding: 0 5%; }
+        
+        .showcase-header { margin-bottom: 3rem; margin-top: 4rem; position: relative; }
+        .showcase-header h2 {
+            font-family: var(--font-display); font-size: 2.2rem; font-weight: 900;
+            letter-spacing: 2px; text-transform: uppercase; color: var(--text-pure);
+        }
+        .showcase-header ::before {
+            content: ''; position: absolute; bottom: -10px; left: 0;
+            width: 60px; height: 3px; background: var(--accent-primary);
+            box-shadow: 0 0 10px var(--accent-primary);
+        }
+
+        .media-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2.5rem;
+        }
+
+        .media-card {
+            background: var(--glass-base); backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px); border: 1px solid var(--glass-border);
+            position: relative; overflow: hidden;
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 30px), calc(100% - 30px) 100%, 0 100%);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex; flex-direction: column;
+        }
+
+        .media-img-wrapper {
+            width: 100%; height: 220px; overflow: hidden; position: relative;
+            border-bottom: 2px solid var(--accent-primary);
+        }
+
+        .media-img-wrapper img {
+            width: 100%; height: 100%; object-fit: cover;
+            filter: grayscale(80%) contrast(120%) brightness(0.8);
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .media-img-wrapper::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(0, 243, 255, 0.1) 1px, transparent 1px);
+            background-size: 100% 4px; pointer-events: none;
+        }
+
+        .media-card:hover {
+            border-color: var(--accent-primary);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 20px var(--accent-glow);
+            transform: translateY(-5px);
+        }
+
+        .media-card:hover img {
+            filter: grayscale(0%) contrast(100%) brightness(1); transform: scale(1.05);
+        }
+
+        .media-content { padding: 2rem; display: flex; flex-direction: column; flex-grow: 1; }
+
+        .card-meta {
+            font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent-primary);
+            letter-spacing: 1px; margin-bottom: 1.2rem; display: flex;
+            justify-content: space-between; align-items: center;
+        }
+
+        .status-pill {
+            width: 8px; height: 8px; background: var(--accent-primary);
+            box-shadow: 0 0 8px var(--accent-primary); border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+
+        .card-title {
+            font-family: var(--font-display); font-size: 1.4rem; font-weight: 800;
+            text-transform: uppercase; margin-bottom: 1rem;
+        }
+
+        .card-body {
+            color: var(--text-dim); font-size: 0.95rem; line-height: 1.6; margin-bottom: 2rem; flex-grow: 1;
+        }
+
+        .action-node {
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(0, 0, 0, 0.05); border: 1px solid var(--glass-border);
+            padding: 0.8rem 1.2rem; font-family: var(--font-mono); font-size: 0.85rem;
+            color: var(--text-pure); cursor: pointer; text-transform: uppercase; transition: all 0.3s ease;
+        }
+
+        .action-node:hover {
+            background: var(--accent-glow); border-color: var(--accent-primary); color: var(--text-pure);
+        }
+        .node-vector { transition: transform 0.3s ease; }
+        .action-node:hover .node-vector { transform: translateX(5px); }
+
+    </style>
+</head>
+<body>
+
+    <div id="boot-sequence">
+        <div class="boot-line" id="line1">> INITIATING SYSTEM BOOT...</div>
+        <div class="boot-line" id="line2">> LOADING KERNEL... OK</div>
+        <div class="boot-line" id="line3">> CONNECTING TO TECHFEST MAINFRAME...</div>
+        <div class="boot-line" id="line4">> BYPASSING SECURITY... SUCCESS</div>
+        <div class="boot-line" id="line5">> WAKING NEURAL CORTEX...</div>
+    </div>
+
+    <div id="main-content">
+        <header>
+            <div class="logo">TF_29</div>
+            <div class="theme-switch-wrapper">
+                <span>Baseline</span>
+                <label class="switch">
+                    <input type="checkbox" id="theme-toggle">
+                    <span class="slider"></span>
+                </label>
+                <span style="color: var(--accent-primary);">Augmented</span>
+            </div>
+        </header>
+
+        <section class="hero">
+            <h1>A Simulated Paradigm</h1>
+            <p>Establish your connection to Asia's largest Science and Technology festival. Validate your credentials to join the IIT Bombay mainframe.</p>
+            <button class="biometric-btn" id="bio-btn">
+                <span class="bio-fill" id="bio-fill"></span>
+                <span class="scanner-line" id="scanner-line"></span>
+                <span id="btn-text">[ PRESS AND HOLD TO AUTHENTICATE ]</span>
+            </button>
+        </section>
+
+        <main class="glass-wrapper">
+            
+            <header class="showcase-header" style="margin-top: 0;">
+                <h2>Active Operations</h2>
+            </header>
+
+            <section class="media-grid">
+                <div class="media-card">
+                    <div class="media-img-wrapper">
+                        <img src="https://techfest.org/media/compiImg/8kg.jpg">
+                    </div>
+                    <div class="media-content">
+                        <div class="card-meta">
+                            <span>SYS_REF // COMBAT.01</span>
+                            <div class="status-pill"></div>
+                        </div>
+                        <h3 class="card-title">International Robowars</h3>
+                        <p class="card-body">Design and deploy heavily armored combat robotics. Enter the bulletproof arena and eliminate opponent machinery in high-voltage deathmatches.</p>
+                        <div class="action-node">
+                            <span>Enter Arena</span>
+                            <span class="node-vector">➔</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="media-card">
+                    <div class="media-img-wrapper">
+                        <img src="data:image/jpeg;base64,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" alt="Code Matrix">
+                    </div>
+                    <div class="media-content">
+                        <div class="card-meta">
+                            <span>SYS_REF // HACK.02</span>
+                            <div class="status-pill"></div>
+                        </div>
+                        <h3 class="card-title">AI & ML Hackathon</h3>
+                        <p class="card-body">A 48-hour cognitive coding challenge. Develop advanced neural algorithms, bypass simulated security protocols, and solve complex dataset anomalies.</p>
+                        <div class="action-node">
+                            <span>Join Squad</span>
+                            <span class="node-vector">➔</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="media-card">
+                    <div class="media-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80" alt="Hardware Engineering">
+                    </div>
+                    <div class="media-content">
+                        <div class="card-meta">
+                            <span>SYS_REF // SKILL.03</span>
+                            <div class="status-pill"></div>
+                        </div>
+                        <h3 class="card-title">Techfest Workshops</h3>
+                        <p class="card-body">Upgrade your hardware and software engineering skills. Learn IoT, embedded systems, and ethical hacking. Official IIT Bombay certification granted.</p>
+                        <div class="action-node">
+                            <span>Get Certified</span>
+                            <span class="node-vector">➔</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <header class="showcase-header">
+                <h2>Neural Recreation</h2>
+            </header>
+
+            <section class="media-grid">
+                <div class="media-card">
+                    <div class="media-img-wrapper">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/cd/Technoholix_Crowd_at_Techfest%2C_IIT_Bombay.jpg" alt="Technoholix EDM Crowd">
+                    </div>
+                    <div class="media-content">
+                        <div class="card-meta">
+                            <span>SYS_REF // TECHNOHOLIX</span>
+                            <div class="status-pill"></div>
+                        </div>
+                        <h3 class="card-title">Technoholix Night Arena</h3>
+                        <p class="card-body">Disconnect from the mainframe and experience pure sensory overload. Featuring international EDM artists, pyrotechnics, laser displays, and visual street arts.</p>
+                        <div class="action-node">
+                            <span>View Lineup</span>
+                            <span class="node-vector">➔</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="media-card">
+                    <div class="media-img-wrapper">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/9/9b/%D0%9A%D0%BB%D0%B0%D1%81_60.jpg" alt="Ozone VR Gaming">
+                    </div>
+                    <div class="media-content">
+                        <div class="card-meta">
+                            <span>SYS_REF // OZONE.FUN</span>
+                            <div class="status-pill"></div>
+                        </div>
+                        <h3 class="card-title">Ozone Recreation Hub</h3>
+                        <p class="card-body">Calibrate your physical reflexes. Engage in 9D Virtual Reality simulators, Lazer Tag, Paintball, Go-Karting, and massive multiplayer LAN zones.</p>
+                        <div class="action-node">
+                            <span>Explore Zone</span>
+                            <span class="node-vector">➔</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // BOOT SEQUENCE
+        const bootSequence = document.getElementById('boot-sequence');
+        const mainContent = document.getElementById('main-content');
+        const lines = [
+            document.getElementById('line1'), document.getElementById('line2'),
+            document.getElementById('line3'), document.getElementById('line4'),
+            document.getElementById('line5')
+        ];
+
+        lines.forEach((line, index) => {
+            setTimeout(() => { line.style.opacity = '1'; }, index * 600);
+        });
+
+        setTimeout(() => {
+            bootSequence.style.display = 'none';
+            mainContent.style.display = 'block';
+            setTimeout(() => { mainContent.style.opacity = '1'; }, 50);
+        }, 3500);
+
+        // THEME TOGGLE
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
+
+        themeToggle.addEventListener('change', () => {
+            body.classList.add('glitch-active');
+            setTimeout(() => { body.classList.remove('glitch-active'); }, 400);
+            if (themeToggle.checked) {
+                document.documentElement.setAttribute('data-theme', 'augmented');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+            }
+        });
+
+        // BIOMETRIC SCANNER
+        const bioBtn = document.getElementById('bio-btn');
+        const bioFill = document.getElementById('bio-fill');
+        const scannerLine = document.getElementById('scanner-line');
+        const btnText = document.getElementById('btn-text');
+        
+        let holdTimer;
+        let progress = 0;
+        let isHolding = false;
+        let isVerified = false;
+
+        function startScan(e) {
+            if (e.type !== 'touchstart') e.preventDefault();
+            if (isVerified) return;
+            
+            isHolding = true;
+            btnText.innerText = "[ SCANNING... ]";
+            scannerLine.style.opacity = '1';
+            
+            holdTimer = setInterval(() => {
+                progress += 1; 
+                bioFill.style.width = `${progress}%`;
+                scannerLine.style.left = `${progress}%`;
+                
+                if (progress >= 100) {
+                    clearInterval(holdTimer);
+                    isVerified = true;
+                    scannerLine.style.opacity = '0';
+                    btnText.innerText = "IDENTITY VERIFIED. ACCESS GRANTED.";
+                    btnText.style.color = "var(--btn-text-verified)";
+                    setTimeout(() => {
+                        alert("Authentication complete! Redirecting to Techfest Portal...");
+                    }, 500);
+                }
+            }, 20); 
+        }
+
+        function cancelScan() {
+            if (isVerified || !isHolding) return;
+            isHolding = false;
+            clearInterval(holdTimer);
+            progress = 0;
+            
+            bioFill.style.width = '0%';
+            scannerLine.style.opacity = '0';
+            scannerLine.style.left = '0%';
+            btnText.innerText = "ACCESS DENIED. HOLD TO RETRY.";
+            btnText.style.color = "red";
+            
+            setTimeout(() => {
+                if(!isHolding) {
+                    btnText.innerText = "[ PRESS AND HOLD TO AUTHENTICATE ]";
+                    btnText.style.color = "var(--accent-primary)";
+                }
+            }, 1500);
+        }
+
+        bioBtn.addEventListener('mousedown', startScan);
+        bioBtn.addEventListener('mouseup', cancelScan);
+        bioBtn.addEventListener('mouseleave', cancelScan);
+        bioBtn.addEventListener('touchstart', startScan, {passive: true});
+        bioBtn.addEventListener('touchend', cancelScan);
+        bioBtn.addEventListener('touchcancel', cancelScan);
+    </script>
+</body>
+</html>
